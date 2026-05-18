@@ -9,7 +9,8 @@ from docxtpl import DocxTemplate
 
 # -------------- НАСТРОЙКИ -----------------
 VK_TOKEN = rf"{os.getenv('VK_Token')}"
-MAIN_PATH= r"C:/Users/user/Desktop/AlsuProg/Doc_sample"
+MAIN_PATH= rf"{os.getenv('USERPROFILE')}/Desktop/Doc_sample"
+print(os.getenv('VK_Token'))
 SAMPLES=dict({
               "Об увольнении":"Firing","О трудоустройстве":"GetWork","Об отпуске":"Vacancy","Извещение об отпуске":"VacancyNotify","Регламент отпуска":"VacancyNotifyQuest",
               "Увольнение":"Firing","Трудоустройство":"GetWork","Отпуск":"Vacancy","Оповещение об отпуске":"VacancyNotify","Вопрос оповещения об отпуске":"VacancyNotifyQuest"
