@@ -7,16 +7,8 @@ import os
 from datetime import datetime
 from docxtpl import DocxTemplate
 
-"""
-VK_TOKEN - Вставляете сгенерированный ключ от вк (Надо создать сообщество). 
-    В его настройках разрешить управление сообществом, сообщениями и документами (Раздел работа с API)
-В переменную MAIN_PATH Указывается путь до каталога с папками шаблонов
-Устанавливаете зависимости: в командной строке(cmd) пишете (pip install <Название пакета>). Пакеты: vk-api doxtpl
-Запускаете скрипт 
-Пишете боту "начать" или "новый" и активируется скрипт
-"""
 # -------------- НАСТРОЙКИ -----------------
-VK_TOKEN = "vk1.a.QgR6sx9uVSwVjmr0RbxL0gxGE0i4CO8p1as7wO6_ozAIe2W_hhA354x9hcKQUW1s6qJYwcEMU_cNoI4IG4GxeyLNTF3q4RFojK_QYx1HJquE-yv7zKHJHyDatKjuEZyzAlmop4I7fwryS1Hg4ZtlXO-5G4mEr8eLmE7n6U4htNbRAM09CLo0rdN7plpxDLbzEjoSUtPI63vMtSECUkdxuA"
+VK_TOKEN = rf"{os.getenv('VK_Token')}"
 MAIN_PATH= r"C:/Users/user/Desktop/AlsuProg/Doc_sample"
 SAMPLES=dict({
               "Об увольнении":"Firing","О трудоустройстве":"GetWork","Об отпуске":"Vacancy","Извещение об отпуске":"VacancyNotify","Регламент отпуска":"VacancyNotifyQuest",
