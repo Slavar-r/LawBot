@@ -9,8 +9,8 @@ from docxtpl import DocxTemplate
 
 # -------------- НАСТРОЙКИ -----------------
 VK_TOKEN = rf"{os.getenv('VK_Token')}"
-MAIN_PATH= rf"{os.getenv('USERPROFILE')}/Desktop/Doc_sample"
-print(os.getenv('VK_Token'))
+MAIN_PATH= rf"{os.getenv('Bot_Path')}/Doc_sample"
+
 SAMPLES=dict({
               "Об увольнении":"Firing","О трудоустройстве":"GetWork","Об отпуске":"Vacancy","Извещение об отпуске":"VacancyNotify","Регламент отпуска":"VacancyNotifyQuest",
               "Увольнение":"Firing","Трудоустройство":"GetWork","Отпуск":"Vacancy","Оповещение об отпуске":"VacancyNotify","Вопрос оповещения об отпуске":"VacancyNotifyQuest"
@@ -51,13 +51,29 @@ DOCUMENT_VARIABLES = dict({
                            
                          })
 SCHEMA_DOC = {
-    "Об увольнении":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["Получатель"],DOCS_VARIABLES["ДолжностьОтправителя"],DOCS_VARIABLES["Отправитель"],DOCS_VARIABLES["ДатаРасторжения"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["Кадровик"]],
-    "О трудоустройстве":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["Получатель"],DOCS_VARIABLES["ДолжностьОтправителя"],DOCS_VARIABLES["Отправитель"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["Цена"],DOCS_VARIABLES["ЖелаемаяДолжность"],DOCS_VARIABLES["ИспытательныйСрок"],DOCS_VARIABLES["ДатаПриемаНаРаботу"]],
-    "Об отпуске":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["ДолжностьОтправителя"],DOCS_VARIABLES["Отправитель"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["Причина"],DOCS_VARIABLES["ПланНачОтдых"],DOCS_VARIABLES["ПланКонОтдых"],DOCS_VARIABLES["НачОтдых"],DOCS_VARIABLES["КонОтдых"],DOCS_VARIABLES["КолВоДней"]],
-    "Извещение об отпуске":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Получатель"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["НачОтдых"],DOCS_VARIABLES["КонОтдых"],DOCS_VARIABLES["Кадровик"], DOCS_VARIABLES["КолВоДней"]],
-    "Регламент отпуска":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Получатель"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["ОзнакУвед"],DOCS_VARIABLES["Кадровик"]]
+    "об увольнении":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["Получатель"],DOCS_VARIABLES["ДолжностьОтправителя"],DOCS_VARIABLES["Отправитель"],DOCS_VARIABLES["ДатаРасторжения"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["Кадровик"]],
+    "о трудоустройстве":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["Получатель"],DOCS_VARIABLES["ДолжностьОтправителя"],DOCS_VARIABLES["Отправитель"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["Цена"],DOCS_VARIABLES["ЖелаемаяДолжность"],DOCS_VARIABLES["ИспытательныйСрок"],DOCS_VARIABLES["ДатаПриемаНаРаботу"]],
+    "об отпуске":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["ДолжностьОтправителя"],DOCS_VARIABLES["Отправитель"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["Причина"],DOCS_VARIABLES["ПланНачОтдых"],DOCS_VARIABLES["ПланКонОтдых"],DOCS_VARIABLES["НачОтдых"],DOCS_VARIABLES["КонОтдых"],DOCS_VARIABLES["КолВоДней"]],
+    "извещение об отпуске":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Получатель"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["НачОтдых"],DOCS_VARIABLES["КонОтдых"],DOCS_VARIABLES["Кадровик"], DOCS_VARIABLES["КолВоДней"]],
+    "регламент отпуска":[DOCS_VARIABLES["ДолжностьПолучателя"],DOCS_VARIABLES["Получатель"],DOCS_VARIABLES["Организация"],DOCS_VARIABLES["Отдел"],DOCS_VARIABLES["Дата"],DOCS_VARIABLES["ОзнакУвед"],DOCS_VARIABLES["Кадровик"]]
               }
-                       
+class Policy ():
+    def __init__(self):
+        self.policy = False
+        return
+    def ChangeValue(self, value: bool):
+        if self.policy != value:
+            self.policy = value
+            return ("Политика успешно изменена")
+        elif self.policy == value:
+            return ("Политика не была обновлена: Значение уже установлено")
+    def GetValue(self):
+        return self.policy
+    def Request(self):
+        if self.policy == True:
+            return "принято"
+        else:
+            return "не принято"
 
 # ================================
 def init_db():
@@ -122,7 +138,7 @@ def generate_docx(doc_id, data, DocName):
     doc = DocxTemplate(SAMPLE_NAME)
     
     match data["тип_документа"]:
-        case "Об увольнении":
+        case "об увольнении":
             context = {
             "RECEPIENT_JOB":data["Должность(Кому)"],
                 "ORGANIZATION":data["Название организации"],
@@ -134,7 +150,7 @@ def generate_docx(doc_id, data, DocName):
                 "EMPLOYEE":data["ФИО сотрудника отдела кадров"],
                 "TIME":data["Дата"]
                       }
-        case "О трудоустройстве":
+        case "о трудоустройстве":
             context = {
                 "RECEPIENT_JOB":data["Должность(Кому)"],
                 "ORGANIZATION":data["Название организации"],
@@ -148,7 +164,7 @@ def generate_docx(doc_id, data, DocName):
                 "TRIAL":data["Продолжительность испытательного срока"],
                 "PRICE":data["Размер оклада"]
                       }
-        case "Об отпуске":
+        case "об отпуске":
             context = {
                 "RECEPIENT_JOB":data["Должность(Кому)"],
                 "ORGANIZATION":data["Название организации"],
@@ -163,7 +179,7 @@ def generate_docx(doc_id, data, DocName):
                 "ENDVACANCY":data["Конец отпуска"],
                 "NUMVACDAYS":data["Кол-во дней в отпуске"],
                       }
-        case "Извещение об отпуске":
+        case "извещение об отпуске":
             context = {
                 "RECEPIENT_JOB":data["Должность(Кому)"],
                 "RECIPIENT":data["ФИО получателя(Кому)"],
@@ -175,7 +191,7 @@ def generate_docx(doc_id, data, DocName):
                 "NUMVACDAYS":data["Кол-во дней в отпуске"],
                 "EMPLOYEE":data["ФИО сотрудника отдела кадров"],
                      }
-        case "Регламент отпуска":
+        case "регламент отпуска":
             context = {
                 "RECEPIENT_JOB":data["Должность(Кому)"],
                 "ORGANIZATION":data["Название организации"],
@@ -224,6 +240,7 @@ init_db()
 print("Бот запущен")
 
 user_states = {}
+policy = Policy()
 for event in longpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW and event.to_me:
         user_id = event.user_id
@@ -231,15 +248,25 @@ for event in longpoll.listen():
 
         # Команда: начать создание документа
         if text in ("начать", "новый"):
+            if policy.GetValue() == False:
+                send_message(user_id,"Данный бот работает с личными данными. Чтобы продолжить пользоваться примите условия соглашения")
             user_states[user_id] = {'action': 'choose_type'}
-            types_list = "\n".join([f"- {t}" for t in SCHEMA_DOC.keys()])
-            send_message(user_id, f"📌 Выберите тему документа:\n{types_list}")
+            types_list = "\n".join([f"- {t.capitalize()}" for t in SCHEMA_DOC.keys()])
+            send_message(user_id, f"📌 Выберите тему документа:\n{types_list} \n Или \n Пользовательское соглашение")
             continue
 
         # --- Обработка выбора типа ---
         if user_id in user_states and user_states[user_id].get('action') == 'choose_type':
             chosen_type = event.text.strip()#.capitalize()
-            if chosen_type in SCHEMA_DOC:
+            if chosen_type == "Пользовательское соглашение":
+                send_message(user_id, f"Принять/Отозвать/Статус")
+            elif text.strip().lower() in ("статус", "status"):
+                send_message(user_id,policy.Request())
+            elif text.strip().lower() in ("принять", "да"):
+                send_message(user_id,policy.ChangeValue(True))
+            elif text.strip().lower() in ("отозвать", "нет"):
+                send_message(user_id,policy.ChangeValue(False))
+            elif chosen_type.strip().lower() in SCHEMA_DOC and policy.GetValue() == True:
                 fields_order = SCHEMA_DOC[chosen_type]
                 user_states[user_id] = {
                     'action': 'new_doc',
@@ -248,13 +275,15 @@ for event in longpoll.listen():
                     'fields_order': fields_order
                 }
                 send_message(user_id, f"✅ Тип: {chosen_type}\nВведите {fields_order[0]}:")
+            elif chosen_type.strip().lower() in SCHEMA_DOC and policy.GetValue() == False:
+                send_message(user_id, f"❌Пользовательское соглашение не принято")
             else:
-                send_message(user_id, f"❌ Неизвестный тип. Доступны: {', '.join(SCHEMA_DOC.keys())}")
+                send_message(user_id, f"❌ Неизвестный тип. Доступны: {', '.join([str(i).capitalize() for i in SCHEMA_DOC.keys()])}")
             continue
             
         
         # Обработка пошагового создания
-        if user_id in user_states and user_states[user_id]['action'] == 'new_doc':
+        if user_id in user_states and user_states[user_id]['action'] == 'new_doc' :
             state = user_states[user_id]
             step = state['step']
             field_name = state['fields_order'][step]
@@ -272,7 +301,7 @@ for event in longpoll.listen():
             continue
 
         # Команда: получить документ по ID (текст)
-        if text.startswith("/показать "):
+        if text.startswith("/показать ") and policy.GetValue() == True:
             try:
                 doc_id = int(text.split()[1])
                 doc = get_document(doc_id)
@@ -285,9 +314,12 @@ for event in longpoll.listen():
             except:
                 send_message(user_id, "❌ Используйте: /Показать <id>")
             continue
+        elif text.startswith("/показать ") and policy.GetValue() == False:
+            send_message(user_id, f"❌Пользовательское соглашение не принято")
+
 
 #========================================
-        if text.startswith("/скачать "):
+        if text.startswith("/скачать ") and policy.GetValue() == True:
             try:
                 doc_id = int(text.split()[1])
                 doc_data = get_document(doc_id)
@@ -304,8 +336,10 @@ for event in longpoll.listen():
             except:
                 send_message(user_id, "❌ Используйте: /Скачать <id>")
             continue
+        elif text.startswith("/скачать ") and policy.GetValue() == False:
+            send_message(user_id, f"❌Пользовательское соглашение не принято")
 #=======================================================
-        if text.startswith("/редактировать"):
+        if text.startswith("/редактировать") and policy.GetValue() == True:
             try:
                 doc_id = int(text.split()[1])
                 doc = get_document(doc_id)
@@ -328,6 +362,8 @@ for event in longpoll.listen():
             except:
                 send_message(user_id, "❌ Используйте: /Редактировать <id>")
             continue
+        elif text.startswith("/редактировать ") and policy.GetValue() == False:
+            send_message(user_id, f"❌Пользовательское соглашение не принято")
 
 # Обработка редактирования (по шагам)
         if user_id in user_states and user_states[user_id]['action'] == 'edit_doc':
@@ -352,7 +388,7 @@ for event in longpoll.listen():
             continue
 
         #Команда - список документов
-        if text == "/список":
+        if text == "/список" and policy.GetValue() == True:
             docs = get_user_docs(user_id)
             if docs:
                 msg = "📂 Ваши документы:\n" + "\n".join([f"#{did}: {doc}" for did, doc in docs])
@@ -360,12 +396,13 @@ for event in longpoll.listen():
                 msg = "У вас пока нет документов. Напишите 'начать' чтобы создать."
             send_message(user_id, msg)
             continue
-
+        elif text == "/список"and policy.GetValue() == False:
+            send_message(user_id, f"❌Пользовательское соглашение не принято")
 #===========================================================================
         if text in ("/help", "помощь"):
             help_text = (
                 "📌 Команды:\n"
-                "Начать / новый — создать документ\n"
+                "Начать / новый — создать документ, пользовательское соглашение\n"
                 "/Показать <id> — показать текст документа\n"
                 "/Скачать <id> — скачать документ в формате DOCX\n"
                 "/Редактировать <id> — редактировать документ\n"
