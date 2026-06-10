@@ -12,15 +12,15 @@ VK_TOKEN = rf"{os.getenv('VK_Token')}"
 MAIN_PATH= rf"{os.getenv('Bot_Path')}/Doc_sample"
 
 SAMPLES=dict({
-              "Об увольнении":"Firing","О трудоустройстве":"GetWork","Об отпуске":"Vacancy","Извещение об отпуске":"VacancyNotify","Регламент отпуска":"VacancyNotifyQuest",
-              "Увольнение":"Firing","Трудоустройство":"GetWork","Отпуск":"Vacancy","Оповещение об отпуске":"VacancyNotify","Вопрос оповещения об отпуске":"VacancyNotifyQuest"
+              "об увольнении":"firing","о трудоустройстве":"getWork","об отпуске":"vacancy","Извещение об отпуске":"vacancyNotify","Регламент отпуска":"vacancyNotifyQuest",
+              "Увольнение":"firing","трудоустройство":"getWork","отпуск":"vacancy","Оповещение об отпуске":"vacancyNotify","Вопрос оповещения об отпуске":"vacancyNotifyQuest"
             })
 DocType_Rus=dict({
-                  "Firing":"Заявление на увольнение","Об увольнении":"Заявление на увольнение",
-                  "GetWork":"Заявление на трудоустройство","О трудоустройстве":"Заявление на трудоустройство",
-                  "Vacancy":"Заявление на отпуск","Об отпуске":"Заявление на отпуск",
-                  "VN":"Оповещение об отпуске","VacancyNotify":"Оповещение об отпуске","Извещение об отпуске":"Оповещение об отпуске",
-                  "VNC":"Уведомление об отпуске", "VacancyNotifyQuest":"Уведомление об отпуске","Регламент отпуска":"Уведомление об отпуске"
+                  "firing":"заявление на увольнение","об увольнении":"заявление на увольнение",
+                  "getWork":"заявление на трудоустройство","о трудоустройстве":"заявление на трудоустройство",
+                  "vacancy":"заявление на отпуск","об отпуске":"заявление на отпуск",
+                  "vN":"оповещение об отпуске","vacancyNotify":"оповещение об отпуске","извещение об отпуске":"оповещение об отпуске",
+                  "vNC":"уведомление об отпуске", "vacancyNotifyQuest":"Уведомление об отпуске","регламент отпуска":"уведомление об отпуске"
                 })
 DOCS_VARIABLES = dict({
                        "Тип":"Тип документа",
@@ -109,7 +109,6 @@ def get_document(doc_id):
     if row:
         doc = json.loads(row[0])
         doc['created_at'] = row[1]  # добавляем дату создания в словарь
-        #print(doc)
         return doc
     return None
 
@@ -235,6 +234,13 @@ longpoll = VkLongPoll(vk_session)
 
 def send_message(user_id, text):
     vk.messages.send(user_id=user_id, message=text, random_id=0)
+def policy_block(text):
+    if text.strip().lower() in ("статус", "status"):
+        send_message(user_id,policy.Request())
+    elif text.strip().lower() in ("принять", "да"):
+        send_message(user_id,policy.ChangeValue(True))
+    elif text.strip().lower() in ("отозвать", "нет"):
+        send_message(user_id,policy.ChangeValue(False))
 
 init_db()
 print("Бот запущен")
@@ -250,23 +256,32 @@ for event in longpoll.listen():
         if text in ("начать", "новый"):
             if policy.GetValue() == False:
                 send_message(user_id,"Данный бот работает с личными данными. Чтобы продолжить пользоваться примите условия соглашения")
-            user_states[user_id] = {'action': 'choose_type'}
+            user_states[user_id] = {'action': 'policy'}
             types_list = "\n".join([f"- {t.capitalize()}" for t in SCHEMA_DOC.keys()])
             send_message(user_id, f"📌 Выберите тему документа:\n{types_list} \n Или \n Пользовательское соглашение")
             continue
 
+
+        if user_id in user_states and user_states[user_id].get('action') == 'policy':
+            if text.strip().lower() == "пользовательское соглашение":
+                send_message(user_id, "Раздел пользовательское соглашение")
+                send_message(user_id, f"Принять/Отозвать/Статус")
+                policy_block(text)
+            user_states[user_id] = {'action': 'choose_type'}
+
+
         # --- Обработка выбора типа ---
         if user_id in user_states and user_states[user_id].get('action') == 'choose_type':
-            chosen_type = event.text.strip()#.capitalize()
-            if chosen_type == "Пользовательское соглашение":
-                send_message(user_id, f"Принять/Отозвать/Статус")
+            chosen_type = event.text.strip().lower()
+            if text.strip().lower() == "пользовательское соглашение":
+                user_states[user_id] = {'action': 'policy'}
             elif text.strip().lower() in ("статус", "status"):
                 send_message(user_id,policy.Request())
             elif text.strip().lower() in ("принять", "да"):
                 send_message(user_id,policy.ChangeValue(True))
             elif text.strip().lower() in ("отозвать", "нет"):
                 send_message(user_id,policy.ChangeValue(False))
-            elif chosen_type.strip().lower() in SCHEMA_DOC and policy.GetValue() == True:
+            elif chosen_type in SCHEMA_DOC and policy.GetValue() == True:
                 fields_order = SCHEMA_DOC[chosen_type]
                 user_states[user_id] = {
                     'action': 'new_doc',
@@ -275,10 +290,14 @@ for event in longpoll.listen():
                     'fields_order': fields_order
                 }
                 send_message(user_id, f"✅ Тип: {chosen_type}\nВведите {fields_order[0]}:")
-            elif chosen_type.strip().lower() in SCHEMA_DOC and policy.GetValue() == False:
-                send_message(user_id, f"❌Пользовательское соглашение не принято")
+            elif chosen_type in SCHEMA_DOC and policy.GetValue() == False:
+                send_message(user_id, "❌Пользовательское соглашение не принято")
+            elif chosen_type == "прервать":
+                del user_states[user_id]
+                send_message(user_id, "Успешно прервано")
+                continue
             else:
-                send_message(user_id, f"❌ Неизвестный тип. Доступны: {', '.join([str(i).capitalize() for i in SCHEMA_DOC.keys()])}")
+                send_message(user_id, f"❌ Неизвестный тип. Доступны: {', '.join([str(i).capitalize() for i in SCHEMA_DOC.keys()])}, Пользовательское соглашение")
             continue
             
         
@@ -287,8 +306,13 @@ for event in longpoll.listen():
             state = user_states[user_id]
             step = state['step']
             field_name = state['fields_order'][step]
-            state['fields'][field_name] = event.text.strip()
-            
+            if text.strip().lower() != "прервать":
+                state['fields'][field_name] = event.text.strip()
+            else:
+                del user_states[user_id]
+                send_message(user_id, "Успешно прервано")
+                continue
+
             if step + 1 < len(state['fields_order']):
                 state['step'] += 1
                 send_message(user_id, f"Введите {state['fields_order'][state['step']]}:")
@@ -299,7 +323,7 @@ for event in longpoll.listen():
                                       f"Команды:\n/Показать {doc_id} — получить текст\n/Скачать {doc_id} — скачать DOCX")
                 del user_states[user_id]
             continue
-
+        
         # Команда: получить документ по ID (текст)
         if text.startswith("/показать ") and policy.GetValue() == True:
             try:
@@ -316,6 +340,8 @@ for event in longpoll.listen():
             continue
         elif text.startswith("/показать ") and policy.GetValue() == False:
             send_message(user_id, f"❌Пользовательское соглашение не принято")
+        
+
 
 
 #========================================
@@ -358,7 +384,7 @@ for event in longpoll.listen():
                 first_field = user_states[user_id]['fields_order'][0]
                 send_message(user_id, f"✏️ Редактирование #{doc_id}\n"
                                       f"Текущие данные: {user_states[user_id]['fields']}\n"
-                                      f"Введите новое значение для '{first_field}' (или 'пропустить'):")
+                                      f"Введите новое значение для '{first_field}' (также 'пропустить' или 'прервать'):")
             except:
                 send_message(user_id, "❌ Используйте: /Редактировать <id>")
             continue
@@ -371,9 +397,15 @@ for event in longpoll.listen():
             step = state['step']
             field_name = state['fields_order'][step]
 
-            if event.text.strip().lower() != "пропустить":
+            if event.text.strip().lower() == "пропустить":
+                pass
+            elif event.text.strip().lower() == "прервать":
+                del user_states[user_id]
+                send_message(user_id, "Успешно прервано")
+                continue
+            else:
                 state['fields'][field_name] = event.text.strip()
-
+            
             if step + 1 < len(state['fields_order']):
                 state['step'] += 1
                 next_field = state['fields_order'][state['step']]
